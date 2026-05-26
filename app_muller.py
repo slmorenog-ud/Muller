@@ -5,19 +5,21 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.animation import FuncAnimation
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+import io
 from visualizacion_muller import muller_history
 
 class MullerApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Muller Method Studio")
-        self.root.geometry("1100x700")
+        self.root.title("Muller Method Studio - Pro")
+        self.root.geometry("1100x750")
         
         # Variables de control
-        self.ani = None
         self.history = []
+        self.current_frame = 0
+        self.animation_running = False
+        self.photo_img = None # Referencia para evitar que el GC la borre
         
         self.setup_ui()
 
@@ -53,13 +55,15 @@ class MullerApp:
         self.graph_frame = ttk.Frame(main_pane, padding="10")
         main_pane.add(self.graph_frame, weight=1)
 
-        # Configuración de Matplotlib
+        # Label donde mostraremos el gráfico convertido a imagen
+        self.plot_label = tk.Label(self.graph_frame, bg="white")
+        self.plot_label.pack(fill=tk.BOTH, expand=True)
+
+        # Preparar la figura de Matplotlib (backend AGG para ser independiente)
         self.fig = Figure(figsize=(8, 6), dpi=100)
         self.ax = self.fig.add_subplot(111)
-        self.canvas = FigureCanvasTkAgg(self.fig, master=self.graph_frame)
-        self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
         
-        self.setup_empty_plot()
+        self.update_plot_canvas() # Mostrar ejes vacíos al inicio
 
     def create_input(self, parent, label, default):
         frame = ttk.Frame(parent)
@@ -70,79 +74,89 @@ class MullerApp:
         entry.pack(side=tk.RIGHT, expand=True, fill=tk.X, padx=(10, 0))
         return entry
 
-    def setup_empty_plot(self):
-        self.ax.clear()
-        self.ax.axhline(0, color='black', lw=1)
-        self.ax.axvline(0, color='black', lw=1)
-        self.ax.grid(True, linestyle=':', alpha=0.6)
-        self.ax.set_title("Visualización del Método")
-        self.canvas.draw()
+    def update_plot_canvas(self):
+        """Convierte la figura de Matplotlib a un objeto PhotoImage de Tkinter de forma nativa."""
+        buf = io.BytesIO()
+        self.fig.savefig(buf, format='png', bbox_inches='tight')
+        buf.seek(0)
+        self.photo_img = tk.PhotoImage(data=buf.read())
+        self.plot_label.config(image=self.photo_img)
 
     def start_visualization(self):
         try:
-            # Limpiar animación anterior
-            if self.ani:
-                self.ani.event_source.stop()
-
+            self.animation_running = False # Detener animación previa si existe
+            
             # Leer inputs
             func_str = self.f_entry.get()
             p0 = complex(self.p0_entry.get())
             p1 = complex(self.p1_entry.get())
             p2 = complex(self.p2_entry.get())
-            x_min = float(self.min_entry.get())
-            x_max = float(self.max_entry.get())
+            self.x_min = float(self.min_entry.get())
+            self.x_max = float(self.max_entry.get())
             iters = int(self.iter_entry.get())
 
-            # Entorno seguro
+            # Entorno seguro para evaluar
             safe_dict = {'sin': cmath.sin, 'cos': cmath.cos, 'exp': cmath.exp, 
                          'log': cmath.log, 'sqrt': cmath.sqrt, 'pi': math.pi, 'e': math.e,
                          '__builtins__': None}
-            f = lambda x: eval(func_str, safe_dict, {'x': x})
+            self.f = lambda x: eval(func_str, safe_dict, {'x': x})
 
             # Generar historial
-            self.history = muller_history(f, p0, p1, p2, max_iter=iters)
+            self.history = muller_history(self.f, p0, p1, p2, max_iter=iters)
             if not self.history:
-                raise ValueError("No se pudo generar el historial de iteraciones.")
+                raise ValueError("No se pudo converger o generar el historial.")
 
-            # Mostrar resultado final en label
+            # Mostrar resultado final
             last_p3 = self.history[-1]['p3']
             self.res_label.config(text=f"Raíz: {last_p3.real:.6f} + {last_p3.imag:.6f}j")
 
-            # Preparar Plot
-            self.ax.clear()
-            x_vals = np.linspace(x_min, x_max, 400)
-            y_vals = [f(x).real for x in x_vals]
-            self.ax.plot(x_vals, y_vals, 'k-', label='f(x)', alpha=0.7)
-            self.ax.axhline(0, color='black', lw=1)
-            self.ax.axvline(0, color='black', lw=1)
-            self.ax.grid(True, linestyle=':', alpha=0.6)
-            self.ax.set_title(f"Visualización: {func_str}")
-
-            self.scatter = self.ax.scatter([], [], color='blue', label='Puntos (p0, p1, p2)')
-            self.p3_point = self.ax.scatter([], [], color='red', marker='*', s=150, label='Siguiente (p3)')
-            self.parabola_line, = self.ax.plot([], [], 'r--', label='Parábola', alpha=0.6)
-            self.ax.legend()
-
-            def update(frame):
-                step = self.history[frame]
-                pts, f_pts = step['points'], step['f_points']
-                p3, (a, b, c) = step['p3'], step['coeffs']
-                p2 = pts[2]
-
-                self.scatter.set_offsets(np.array([[p.real, f_p.real] for p, f_p in zip(pts, f_pts)]))
-                self.p3_point.set_offsets(np.array([[p3.real, f(p3).real]]))
-                
-                px = np.linspace(x_min, x_max, 200)
-                py = [(a*(x - p2)**2 + b*(x - p2) + c).real for x in px]
-                self.parabola_line.set_data(px, py)
-                
-                return self.scatter, self.p3_point, self.parabola_line
-
-            self.ani = FuncAnimation(self.fig, update, frames=len(self.history), interval=1000, blit=True, repeat=False)
-            self.canvas.draw()
+            # Iniciar ciclo de animación manual
+            self.current_frame = 0
+            self.animation_running = True
+            self.animate_loop()
 
         except Exception as e:
-            messagebox.showerror("Error", str(e))
+            messagebox.showerror("Error", f"Verifica los datos:\n{str(e)}")
+
+    def animate_loop(self):
+        if not self.animation_running or self.current_frame >= len(self.history):
+            return
+
+        step = self.history[self.current_frame]
+        self.draw_step(step)
+        self.current_frame += 1
+        
+        # Siguiente frame en 1 segundo
+        self.root.after(1000, self.animate_loop)
+
+    def draw_step(self, step):
+        self.ax.clear()
+        
+        # Dibujar función base
+        x_vals = np.linspace(self.x_min, self.x_max, 400)
+        y_vals = [self.f(x).real for x in x_vals]
+        self.ax.plot(x_vals, y_vals, 'k-', label='f(x)', alpha=0.7)
+        self.ax.axhline(0, color='black', lw=1)
+        self.ax.axvline(0, color='black', lw=1)
+        self.ax.grid(True, linestyle=':', alpha=0.6)
+        
+        # Datos del paso
+        pts, f_pts = step['points'], step['f_points']
+        p3, (a, b, c) = step['p3'], step['coeffs']
+        p2 = pts[2]
+
+        # Puntos y Parábola
+        self.ax.scatter([p.real for p in pts], [fp.real for fp in f_pts], color='blue', label='Puntos (p0, p1, p2)')
+        self.ax.scatter([p3.real], [self.f(p3).real], color='red', marker='*', s=150, label='Siguiente (p3)')
+        
+        px = np.linspace(self.x_min, self.x_max, 200)
+        py = [(a*(x - p2)**2 + b*(x - p2) + c).real for x in px]
+        self.ax.plot(px, py, 'r--', label='Parábola', alpha=0.6)
+        
+        self.ax.set_title(f"Iteración {step['iteration']} | p3 ≈ {p3.real:.4f}")
+        self.ax.legend(loc='upper right')
+        
+        self.update_plot_canvas()
 
 if __name__ == "__main__":
     root = tk.Tk()
