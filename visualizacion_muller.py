@@ -49,8 +49,8 @@ def muller_history(f, p0, p1, p2, tol=1e-10, max_iter=20):
         
     return history
 
-def animar_muller(f, p0, p1, p2, x_range=(-2, 3), nombre="Método de Muller"):
-    history = muller_history(f, p0, p1, p2)
+def animar_muller(f, p0, p1, p2, x_range=(-2, 3), max_iter=20, nombre="Método de Muller"):
+    history = muller_history(f, p0, p1, p2, max_iter=max_iter)
     
     fig, ax = plt.subplots(figsize=(10, 6))
     
@@ -109,12 +109,43 @@ def animar_muller(f, p0, p1, p2, x_range=(-2, 3), nombre="Método de Muller"):
     plt.show()
 
 if __name__ == "__main__":
-    # Ejemplo 1: Polinomio x^3 - x - 1
-    f1 = lambda x: x**3 - x - 1
-    print("Iniciando visualización para x^3 - x - 1...")
-    animar_muller(f1, 0, 1, 2, x_range=(-1, 2.5), nombre="x^3 - x - 1")
-    
-    # Ejemplo 2: cos(x) - x
-    f2 = lambda x: cmath.cos(x) - x
-    print("Iniciando visualización para cos(x) - x...")
-    animar_muller(f2, 0, 0.5, 1, x_range=(-1, 2), nombre="cos(x) - x")
+    import argparse
+    import sys
+
+    parser = argparse.ArgumentParser(description="Visualización interactiva del Método de Muller")
+    parser.add_argument("--func", type=str, help="Función en términos de x (ej: 'x**3 - x - 1')")
+    parser.add_argument("--p0", type=float, default=0.0, help="Punto inicial p0")
+    parser.add_argument("--p1", type=float, default=0.5, help="Punto inicial p1")
+    parser.add_argument("--p2", type=float, default=1.0, help="Punto inicial p2")
+    parser.add_argument("--range", type=float, nargs=2, default=[-2.0, 3.0], metavar=('MIN', 'MAX'), help="Rango del eje X para mostrar")
+    parser.add_argument("--iters", type=int, default=20, help="Máximo de iteraciones")
+    parser.add_argument("--nombre", type=str, default="Personalizada", help="Nombre de la función")
+
+    args = parser.parse_args()
+
+    if args.func:
+        # Crear entorno seguro para eval con funciones de cmath y math
+        safe_dict = {
+            'x': 0,
+            'sin': cmath.sin,
+            'cos': cmath.cos,
+            'exp': cmath.exp,
+            'log': cmath.log,
+            'sqrt': cmath.sqrt,
+            'pi': math.pi,
+            'e': math.e
+        }
+        try:
+            f_custom = lambda x: eval(args.func, {"__builtins__": None}, {**safe_dict, 'x': x})
+            # Prueba rápida para verificar la función
+            f_custom(0)
+            print(f"Iniciando visualización personalizada para: {args.func}")
+            animar_muller(f_custom, args.p0, args.p1, args.p2, x_range=tuple(args.range), max_iter=args.iters, nombre=args.func)
+        except Exception as e:
+            print(f"Error al procesar la función: {e}")
+            sys.exit(1)
+    else:
+        # Ejecución por defecto si no hay argumentos
+        f1 = lambda x: x**3 - x - 1
+        print("Iniciando visualización por defecto para x^3 - x - 1...")
+        animar_muller(f1, 0, 1, 2, x_range=(-1, 2.5), nombre="x^3 - x - 1")
