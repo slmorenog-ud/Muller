@@ -42,7 +42,28 @@ La implementación en Python utiliza el módulo `cmath` para manejar de forma na
 # Ver muller.py para la implementación completa
 ```
 
-## 5. Ejemplos y Resultados
+## 5. Análisis de Desempeño y Casos de Estudio
+
+Para comprender la eficiencia del método de Muller, es útil clasificar las funciones según su comportamiento iterativo. El orden de convergencia teórico es de aproximadamente $1.84$, lo que significa que es casi cuadrático (más rápido que la secante, $1.618$, pero un poco más lento que Newton, $2.0$).
+
+### 5.1 Caso Ideal (El "Best Case")
+**Funciones:** Parabólicas o suavemente monótonas cerca de la raíz.  
+**Ejemplo:** $f(x) = x^2 - 4$ o $f(x) = e^x - 2$.  
+**Razón:** Dado que Muller utiliza una parábola para aproximar la función, si la función original ya es una parábola o se parece mucho a una en el intervalo elegido, la aproximación es casi perfecta desde la primera iteración. La convergencia es extremadamente rápida (2-4 iteraciones).
+
+### 5.2 Caso Promedio (Comportamiento Estándar)
+**Funciones:** Polinomios de grado mayor a 2 o funciones trascendentes con raíces bien separadas.  
+**Ejemplo:** $f(x) = x^3 - x - 1$ o $f(x) = \cos(x) - x$.  
+**Razón:** En estos casos, la curvatura de la función cambia, pero la parábola interpolante logra capturar la tendencia general. El método muestra su robustez característica, convergiendo de forma super-lineal hacia la raíz.
+
+### 5.3 Caso Difícil (El "Worst Case")
+**Funciones:** Raíces de alta multiplicidad o funciones con cambios bruscos de pendiente.  
+**Ejemplo:** $f(x) = (x - 1)^5$ o $f(x) = \frac{1}{x-1}$ (cerca de la asíntota).  
+**Razón:** 
+1. **Multiplicidad:** Cuando una raíz se repite (ej. $(x-1)^5$), la derivada $f'(x)$ y la curvatura $f''(x)$ tienden a cero en la raíz. Esto hace que la parábola de Muller se vuelva muy "plana", causando que el método pierda su velocidad super-lineal y se vuelva **lineal** (muy lento).
+2. **Puntos de Inflexión:** Si los puntos iniciales rodean un punto de inflexión muy pronunciado, la parábola puede "saltar" a una región muy lejana del dominio, pudiendo incluso divergir si no hay una lógica de control.
+
+## 6. Resultados y Pruebas
 Se probaron diversas naturalezas de funciones:
 1.  **Polinomial:** $x^3 - x - 1 = 0$ $\rightarrow$ Raíz: $1.3247$
 2.  **Trascendente:** $e^{-x} - x = 0$ $\rightarrow$ Raíz: $0.5671$
