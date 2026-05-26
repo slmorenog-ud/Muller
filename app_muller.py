@@ -96,9 +96,18 @@ class MullerApp:
             iters = int(self.iter_entry.get())
 
             # Entorno seguro para evaluar
-            safe_dict = {'sin': cmath.sin, 'cos': cmath.cos, 'exp': cmath.exp, 
-                         'log': cmath.log, 'sqrt': cmath.sqrt, 'pi': math.pi, 'e': math.e,
-                         '__builtins__': None}
+            safe_dict = {
+                'sin': cmath.sin,
+                'cos': cmath.cos,
+                'exp': cmath.exp,
+                'log': cmath.log,
+                'ln': cmath.log, # Alias para logaritmo natural
+                'sqrt': cmath.sqrt,
+                'pi': math.pi,
+                'e': math.e,
+                '__builtins__': None
+            }
+
             self.f = lambda x: eval(func_str, safe_dict, {'x': x})
 
             # Generar historial

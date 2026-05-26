@@ -131,6 +131,7 @@ if __name__ == "__main__":
             'cos': cmath.cos,
             'exp': cmath.exp,
             'log': cmath.log,
+            'ln': cmath.log, # Alias para logaritmo natural
             'sqrt': cmath.sqrt,
             'pi': math.pi,
             'e': math.e
