@@ -11,14 +11,22 @@ Este repositorio contiene la implementación y documentación del **Método de M
 
 ## Requisitos
 
-Para ejecutar el código, solo necesitas **Python 3.x**. No se requieren librerías externas, ya que se utilizan los módulos nativos `math` y `cmath`.
+- **Python 3.x**
+- Para la lógica base: Solo módulos nativos (`math`, `cmath`).
+- Para la visualización: `matplotlib`, `numpy`.
 
 ## Cómo Ejecutar
 
-Para ver el método en acción con diversos ejemplos y su convergencia paso a paso:
+Para ver el método en acción con diversos ejemplos y su convergencia paso a paso en consola:
 
 ```bash
 python3 ejemplos_muller.py
+```
+
+Para ver la **visualización gráfica animada** (requiere `matplotlib` y `numpy`):
+
+```bash
+python3 visualizacion_muller.py
 ```
 
 Para usar el método en tu propio script:
