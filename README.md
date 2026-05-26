@@ -23,11 +23,13 @@ Para ver el método en acción con diversos ejemplos y su convergencia paso a pa
 python3 ejemplos_muller.py
 ```
 
-Para ver la **visualización gráfica animada** (requiere `matplotlib` y `numpy`):
+Para ver la **interfaz gráfica completa** (GUI):
 
 ```bash
-python3 visualizacion_muller.py
+python3 app_muller.py
 ```
+
+Para ver la **visualización gráfica animada** directamente desde consola:
 
 Para usar el método en tu propio script:
 
