@@ -1,0 +1,140 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstset{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=Python
+}
+
+\title{\textbf{El Método de Muller: Una Aproximación Geométrica y Numérica para la Búsqueda de Raíces}}
+\author{
+    [Tus Datos Aquí] \\
+    \small Institución Educativa: [Nombre de la Institución] \\
+    \small Asignatura: Métodos Numéricos
+}
+\date{26 de mayo de 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+    Este documento presenta un análisis detallado e implementación del método de Muller para la resolución de ecuaciones no lineales. A diferencia de métodos lineales como la secante, Muller utiliza una interpolación cuadrática que permite una convergencia superior y el hallazgo de raíces complejas. Se exploran las bases geométricas del método, su estabilidad numérica y su desempeño frente a funciones de diversa naturaleza.
+\end{abstract}
+
+\section{Introducción}
+La búsqueda de raíces es un problema fundamental en el análisis numérico. El método de Muller, presentado originalmente en 1956, surge como una generalización del método de la secante. Mientras que la secante utiliza una línea recta para aproximar la función entre dos puntos, Muller ajusta una parábola que pasa por tres puntos iniciales. Esta curvatura adicional permite al método capturar mejor la topología local de la función, resultando en una tasa de convergencia de aproximadamente $1.84$, cercana a la convergencia cuadrática del método de Newton-Raphson, pero sin el requisito de calcular derivadas.
+
+\section{Desarrollo Teórico}
+
+\subsection{Intuición Geométrica}
+La idea central es construir una parábola $y = a(x-p_2)^2 + b(x-p_2) + c$ que pase por los puntos $(p_0, f(p_0))$, $(p_1, f(p_1))$ y $(p_2, f(p_2))$. La raíz de esta parábola que se encuentre más próxima al punto $p_2$ se define como la siguiente aproximación $p_3$. Geométricamente, esto permite al algoritmo "doblarse" siguiendo la forma de la función, lo que facilita el hallazgo de raíces complejas incluso partiendo de valores reales.
+
+\subsection{Derivación de las Fórmulas}
+Consideramos el cambio de variable $t = x - p_2$. El polinomio cuadrático es:
+\begin{equation}
+    P(t) = at^2 + bt + c
+\end{equation}
+Evaluando en $t=0$ (donde $x=p_2$), obtenemos $c = f(p_2)$. Para hallar $a$ y $b$, definimos $h_0 = p_0 - p_2$ y $h_1 = p_1 - p_2$, resolviendo el sistema:
+\begin{align}
+    ah_0^2 + bh_0 &= f(p_0) - f(p_2) = e_0 \\
+    ah_1^2 + bh_1 &= f(p_1) - f(p_2) = e_1
+\end{align}
+La solución para los coeficientes, según Mathews y Fink, es:
+\begin{equation}
+    a = \frac{e_0 h_1 - e_1 h_0}{h_1 h_0^2 - h_0 h_1^2}, \quad b = \frac{e_1 h_0^2 - e_0 h_1^2}{h_1 h_0^2 - h_0 h_1^2}
+\end{equation}
+
+\subsection{Estabilidad Numérica y Raíz Cuadrática}
+Para evitar errores de redondeo por cancelación sustractiva, se utiliza la fórmula cuadrática en su forma alternativa:
+\begin{equation}
+    z = \frac{-2c}{b \pm \sqrt{b^2 - 4ac}}
+\end{equation}
+Se debe elegir el signo que maximice la magnitud del denominador $|b \pm \sqrt{b^2 - 4ac}|$. La nueva aproximación será $p_3 = p_2 + z$.
+
+\section{Desafíos Prácticos}
+
+\subsection{Selección de Aproximaciones Iniciales}
+La convergencia depende de que $p_0, p_1, p_2$ estén en una región donde la parábola sea una buena aproximación local. En casos de funciones con múltiples raíces, la elección inicial determina a cuál de ellas convergerá el método.
+
+\subsection{Raíces Cercanas (Clusters)}
+Cuando existen raíces muy próximas, el método puede oscilar entre ellas. Una estrategia efectiva es mantener en cada iteración los dos puntos del conjunto $\{p_0, p_1, p_2\}$ que estén más cerca de la nueva aproximación $p_3$, asegurando que el algoritmo permanezca enfocado en la raíz local.
+
+\section{Algoritmo e Implementación}
+El algoritmo se implementó en Python, aprovechando su soporte nativo para números complejos. A continuación se presenta el núcleo de la función:
+
+\begin{lstlisting}[language=Python, caption=Implementación del Método de Muller]
+import cmath
+
+def muller(f, p0, p1, p2, tol=1e-10, max_iter=100):
+    for _ in range(max_iter):
+        h0, h1 = p0 - p2, p1 - p2
+        f0, f1, f2 = f(p0), f(p1), f(p2)
+        e0, e1 = f0 - f2, f1 - f2
+        
+        det = h0 * h1 * (h0 - h1)
+        a = (e0 * h1 - e1 * h0) / det
+        b = (e1 * h0**2 - e0 * h1**2) / det
+        c = f2
+        
+        disc = cmath.sqrt(b**2 - 4 * a * c)
+        den = b + disc if abs(b + disc) > abs(b - disc) else b - disc
+        z = -2 * c / den
+        p3 = p2 + z
+        
+        if abs(z) < tol: return p3
+        
+        # Lógica de actualización por cercanía
+        points = sorted([p0, p1, p2], key=lambda p: abs(p - p3))
+        p0, p1, p2 = points[0], points[1], p3
+    return p2
+\end{lstlisting}
+
+\section{Ejemplos y Resultados}
+Se evaluaron diversas funciones para demostrar la versatilidad del método:
+\begin{itemize}
+    \item \textbf{Polinomial:} $f(x) = x^3 - x - 1 \rightarrow$ Raíz: $1.3247$
+    \item \textbf{Exponencial:} $f(x) = e^{-x} - x \rightarrow$ Raíz: $0.5671$
+    \item \textbf{Trigonométrica:} $f(x) = \sin(x) - x/2 \rightarrow$ Raíz: $1.8954$
+    \item \textbf{Compleja:} $f(x) = x^2 + 1 \rightarrow$ Raíz: $0 + 1j$
+\end{itemize}
+
+\section{Conclusión}
+El método de Muller es una herramienta robusta que supera a la secante en velocidad y capacidad (raíces complejas). Su fundamentación en la fórmula cuadrática y su naturaleza geométrica lo hacen ideal para problemas donde no se dispone de derivadas. La implementación cuidadosa de la selección de puntos y el manejo de la estabilidad numérica son claves para su éxito en entornos computacionales.
+
+\begin{thebibliography}{9}
+\bibitem{mathews}
+  Mathews, J. H., \& Fink, K. D. (2000).
+  \textit{Métodos Numéricos con MATLAB}.
+  Prentice Hall. Segunda Edición.
+\end{thebibliography}
+
+\end{document}
