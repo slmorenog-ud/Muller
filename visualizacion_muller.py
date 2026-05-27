@@ -2,14 +2,28 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import cmath
-from muller import muller
+from typing import Callable, List, Dict, Any, Tuple
+from muller import muller, ComplexNumber
 
-def muller_history(f, p0, p1, p2, tol=1e-10, max_iter=20):
+# Configuración de estilo global para un look más moderno
+plt.style.use('seaborn-v0_8-muted')
+plt.rcParams['font.family'] = 'sans-serif'
+plt.rcParams['axes.grid'] = True
+plt.rcParams['grid.alpha'] = 0.3
+
+def muller_history(
+    f: Callable[[ComplexNumber], ComplexNumber], 
+    p0: ComplexNumber, 
+    p1: ComplexNumber, 
+    p2: ComplexNumber, 
+    tol: float = 1e-10, 
+    max_iter: int = 20
+) -> List[Dict[str, Any]]:
     """
     Versión del método de Muller que devuelve el historial de cada paso para graficar.
     """
-    history = []
-    iteration = 0
+    history: List[Dict[str, Any]] = []
+    iteration: int = 0
     
     while iteration < max_iter:
         f0, f1, f2 = f(p0), f(p1), f(p2)
@@ -49,25 +63,35 @@ def muller_history(f, p0, p1, p2, tol=1e-10, max_iter=20):
         
     return history
 
-def animar_muller(f, p0, p1, p2, x_range=(-2, 3), max_iter=20, nombre="Método de Muller"):
+def animar_muller(
+    f: Callable[[ComplexNumber], ComplexNumber], 
+    p0: ComplexNumber, 
+    p1: ComplexNumber, 
+    p2: ComplexNumber, 
+    x_range: Tuple[float, float] = (-2, 3), 
+    max_iter: int = 20, 
+    nombre: str = "Método de Muller"
+) -> None:
     history = muller_history(f, p0, p1, p2, max_iter=max_iter)
     
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(10, 6), dpi=100)
     
     # Eje X para graficar la función
-    x_vals = np.linspace(x_range[0], x_range[1], 400)
+    x_vals = np.linspace(x_range[0], x_range[1], 500)
     # Solo graficamos la parte real para visualización 2D
     y_vals = [f(x).real for x in x_vals]
     
-    ax.plot(x_vals, y_vals, 'k-', label='f(x)', linewidth=1.5, alpha=0.7)
-    ax.axhline(0, color='black', lw=1)
-    ax.axvline(0, color='black', lw=1)
+    ax.plot(x_vals, y_vals, color='#2c3e50', label='f(x)', linewidth=2, alpha=0.8)
+    ax.axhline(0, color='#34495e', lw=1, alpha=0.5)
+    ax.axvline(0, color='#34495e', lw=1, alpha=0.5)
     
-    scatter = ax.scatter([], [], color='blue', label='Puntos (p0, p1, p2)')
-    p3_point = ax.scatter([], [], color='red', marker='*', s=150, label='Siguiente (p3)')
-    parabola_line, = ax.plot([], [], 'r--', label='Parábola aproximada', alpha=0.6)
+    scatter = ax.scatter([], [], color='#3498db', s=80, edgecolors='white', zorder=5, label='Puntos (p0, p1, p2)')
+    p3_point = ax.scatter([], [], color='#e74c3c', marker='*', s=250, edgecolors='black', zorder=6, label='Siguiente (p3)')
+    parabola_line, = ax.plot([], [], color='#e67e22', linestyle='--', linewidth=1.5, label='Parábola aproximada', alpha=0.7)
     
-    text_info = ax.text(0.02, 0.95, '', transform=ax.transAxes, verticalalignment='top')
+    # Fondo para el texto informativo
+    text_info = ax.text(0.02, 0.95, '', transform=ax.transAxes, verticalalignment='top', 
+                        bbox=dict(boxstyle='round', facecolor='white', alpha=0.8, edgecolor='#bdc3c7'))
 
     def init():
         scatter.set_offsets(np.empty((0, 2)))
@@ -91,21 +115,24 @@ def animar_muller(f, p0, p1, p2, x_range=(-2, 3), max_iter=20, nombre="Método d
         p3_point.set_offsets(np.array([[p3.real, f(p3).real]]))
         
         # Dibujar parábola: y = a(x-p2)^2 + b(x-p2) + c
-        px = np.linspace(x_range[0], x_range[1], 200)
+        px = np.linspace(x_range[0], x_range[1], 250)
         py = [ (a*(x - p2)**2 + b*(x - p2) + c).real for x in px ]
         parabola_line.set_data(px, py)
         
-        text_info.set_text(f"Iteración: {step['iteration']}\np3: {p3.real:.6f} + {p3.imag:.6f}j")
+        text_info.set_text(f"Iteración: {step['iteration']}\n"
+                          f"p3: {p3.real:.6f} + {p3.imag:.6f}j\n"
+                          f"|f(p3)|: {abs(f(p3)):.2e}")
         
         return scatter, p3_point, parabola_line, text_info
 
-    ani = FuncAnimation(fig, update, frames=len(history), init_func=init, blit=True, repeat=True, interval=1500)
+    ani = FuncAnimation(fig, update, frames=len(history), init_func=init, blit=True, repeat=True, interval=1200)
     
-    plt.title(f"Visualización: {nombre}")
-    plt.xlabel("x")
-    plt.ylabel("f(x)")
-    plt.legend()
-    plt.grid(True, linestyle=':', alpha=0.6)
+    ax.set_title(f"Visualización: {nombre}", fontsize=14, fontweight='bold', pad=20)
+    ax.set_xlabel("x (Real)", fontsize=11)
+    ax.set_ylabel("f(x) (Real)", fontsize=11)
+    ax.legend(frameon=True, facecolor='white', framealpha=0.9)
+    
+    plt.tight_layout()
     plt.show()
 
 if __name__ == "__main__":
@@ -137,7 +164,7 @@ if __name__ == "__main__":
             'e': math.e
         }
         try:
-            f_custom = lambda x: eval(args.func, {"__builtins__": None}, {**safe_dict, 'x': x})
+            f_custom = lambda x: eval(args.func, {"__builtins__": {}}, {**safe_dict, 'x': x})
             # Prueba rápida para verificar la función
             f_custom(0)
             print(f"Iniciando visualización personalizada para: {args.func}")

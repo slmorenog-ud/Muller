@@ -1,0 +1,627 @@
+%!TEX program = xelatex
+\documentclass[aspectratio=169, t]{beamer}
+
+% 1. CARGA DEL TEMA PERSONALIZADO
+\usetheme{Execushares}
+
+% 2. PAQUETES DE SOPORTE
+\usepackage[spanish,shorthands=off]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{tcolorbox}
+\usepackage{cancel}
+\tcbuselibrary{skins, listings, breakable}
+\usepackage{booktabs}
+
+% 3. CONFIGURACIÓN DE IDIOMA Y MATEMÁTICAS
+\DeclareMathOperator{\sen}{sen}
+\let\oldsin\sin
+\renewcommand{\sin}{\sen}
+
+% Fix para los números romanos en allowframebreaks (Anexo)
+\setbeamercolor{frametitle continuation}{fg=white}
+\setbeamertemplate{frametitle continuation}{\textcolor{white}{\insertcontinuationcountroman}}
+
+% 4. COLORES DE DISEÑO
+\definecolor{MyRed}{RGB}{81, 45, 168}
+\definecolor{MyBlue}{RGB}{230, 81, 0}
+\definecolor{Emerald}{RGB}{46, 204, 113}
+\definecolor{Alizarin}{RGB}{231, 76, 60}
+\definecolor{SunFlower}{RGB}{241, 196, 15}
+\definecolor{CodeBg}{RGB}{245, 245, 245}
+
+% 4. CONFIGURACIÓN DE LISTINGS PARA PYTHON
+\lstdefinestyle{mullerpython}{
+    language=Python,
+    basicstyle=\ttfamily\tiny,
+    keywordstyle=\color{MyRed}\bfseries,
+    commentstyle=\color{gray}\itshape,
+    stringstyle=\color{MyBlue},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=5pt,
+    backgroundcolor=\color{CodeBg},
+    showstringspaces=false,
+    breaklines=true,
+    frame=single,
+    rulecolor=\color{MyRed!30},
+    tabsize=4
+}
+
+% 4. CONFIGURACIÓN DE TCOLORBOX PERSONALIZADOS (CORREGIDOS A MANDATORIOS)
+\newtcolorbox{mathstep}[1]{
+    enhanced, colback=white, colframe=MyRed, coltext=black,
+    boxrule=1.2pt, arc=1.5mm, left=4mm, right=4mm, top=4mm, bottom=4mm,
+    title={\textsf{\textbf{#1}}}, coltitle=white, fonttitle=\normalsize\bfseries,
+    boxed title style={colback=MyRed, arc=1mm},
+    attach boxed title to top left={xshift=3mm, yshift=-3mm},
+}
+
+\newtcolorbox{concept}[1]{
+    enhanced, colback=MyBlue!5, colframe=MyBlue,
+    boxrule=1pt, arc=2mm, left=4mm, right=4mm, top=4mm, bottom=4mm,
+    title={\textsf{\textbf{#1}}}, coltitle=white, fonttitle=\normalsize\bfseries,
+    boxed title style={colback=MyBlue, arc=1mm},
+    attach boxed title to top left={xshift=3mm, yshift=-3mm},
+}
+
+\newtcolorbox{performancebox}[2]{
+    enhanced, 
+    breakable,
+    colback=#2!5, 
+    colframe=#2,
+    title=#1,
+    halign title=center,  
+    halign=left,         
+    fonttitle=\bfseries\footnotesize, 
+    fontupper=\footnotesize,          
+    % --- Cambios para bordes redondeados ---
+    arc=2mm,              % Define qué tan redondeada quieres la esquina
+    % sharp corners,      <-- ¡BORRA O COMENTA ESTA LÍNEA!
+    % ---------------------------------------
+    left=6pt, right=6pt, top=6pt, bottom=6pt
+}
+
+% 5. CONFIGURACIÓN DE FUENTES
+\setbeamerfont{frametitle}{size=\huge, series=\bfseries}
+\setbeamerfont{itemize/enumerate body}{size=\large}
+
+% --- METADATOS DE PORTADA ---
+\title{El Método de Müller}
+\subtitle{Búsqueda de Raíces mediante Interpolación Cuadrática}
+\author{
+    Sergio Leonardo Moreno Granado - 20242020091 \\
+    Carlos Andrés Brito Guerrero - 20241020147 \\
+    Natalia Salcedo Parra - 20232020047 \\
+    Nicolás Velasco Pinzón - 20241020009
+}
+\institute{Universidad Distrital Francisco José de Caldas}
+\date{27 de mayo de 2026}
+
+\begin{document}
+
+% --- SLIDE 1: PORTADA ---
+\begin{frame}[plain]
+    \titlepage
+\end{frame}
+
+% --- SLIDE 2: INTRODUCCIÓN ---
+\begin{frame}{El Método de Müller}
+    \begin{concept}{¿Qué es?}
+        Generalización del método de la secante (aproximación por rectas). Aproxima por medio de parábolas \textbf{tres puntos} $(p_0,f(p_0)),(p_1,f(p_1)) \text{ y } (p_2,f(p_2))$.
+    \end{concept}
+
+    \vspace{0.2cm}
+    \begin{mathstep}{¿Qué consigue?}
+        \begin{itemize}
+            \item \textbf{Precisión Curva:} Captura la \textit{curvatura} local, \textit{acelerando} significativamente la convergencia.
+            \item \textbf{Simplicidad:} No requiere derivación analítica (a diferencia de Newton-Rahpson), facilitando su aplicación a otras funciones.
+        \end{itemize}
+    \end{mathstep}
+\end{frame}
+
+% --- SLIDE 3: EVOLUCIÓN ---
+\begin{frame}{Müller como evolución de la Secante}
+    \begin{concept}{\textit{<<Secante de Segundo Orden>>}}
+        \textbf{Optimiza} la trayectoria hacia la raíz al <<anticipar>> el comportamiento de la función. ($\nearrow \to $ U). Sin embargo, al basarse en la información local de $\therefore$, \textbf{no distingue} si la función se curva hacia la raíz o se aleja de ella, provocando un efecto \textit{rebote}.
+    \end{concept}
+
+    \vspace{0.2cm}
+    \begin{mathstep}{Comparativa de Rendimiento}
+        \begin{itemize}
+            \item \textbf{Método de la Secante:} Orden de convergencia de $1.62$.
+            \item \textbf{Método de Müller:} Orden de convergencia de $1.84$.
+            \item \textbf{Efecto:} Menor número de evaluaciones funcionales.
+        \end{itemize}
+    \end{mathstep}
+\end{frame}
+
+% --- SLIDE 4: RAÍCES COMPLEJAS ---
+\begin{frame}{El Superpoder: Raíces Complejas}
+    \begin{concept}{Naturaleza en el Salto}
+        Müller es capaz de navegar por el plano \textbf{complejo} sin intervenciones externas en la lógica del algoritmo, incluso partiendo de aproximaciones reales.
+    \end{concept}
+
+    \vspace{0.2cm}
+    \begin{mathstep}{¿Por qué sucede esto?}
+        \begin{itemize}
+            \item Al \textbf{ajustar} la parábola a $\therefore$ el discriminante \(b^2 - 4ac\) puede hacerse negativo.
+            \item La raíz cuadrada de un número negativo produce un número complejo, lo que permite \textbf{saltar del eje real} al \textbf{plano complejo} y localizar la raíz.
+        \end{itemize}
+    \end{mathstep}
+\end{frame}
+
+% --- SLIDE 5: EL EJE OX ---
+\begin{frame}{Clarificación: El Eje OX}
+    \begin{concept}{Interpretación Geométrica}
+        En este contexto, el <<Eje OX>>, simplemente se refiere al eje horizontal de las abscisas donde buscamos las raíces de la parábola.
+    \end{concept}
+
+    \vspace{0.2cm}
+    \begin{mathstep}{Objetivo Final}
+        Buscamos un valor de $x$ tal que la parábola $P(x) = 0$. Matemáticamente, estamos resolviendo la ecuación cuadrática que construimos a partir de $\therefore$. Este punto de intersección es la base para calcular nuestra siguiente aproximación iterativa $(p_0,p_1,p_2 \to p_3)$.
+    \end{mathstep}
+\end{frame}
+
+% --- SLIDE 6: GRÁFICA TIKZ ---
+\begin{frame}{Visualización del Método de Müller}
+    \vspace{-0.7cm}
+    \begin{center}
+    \begin{tikzpicture}[scale=1.13]
+        
+        % 1. Ejes
+        \draw[->] (-1,0) -- (11,0) node[right] {$x$ (OX)};
+        \draw[->] (0,-1) -- (0,5.2) node[above] {$f(x)$};
+        
+        % 2. Parábola perfecta (naranja, punteada)
+        % Calculada para pasar por (1, 1.5), (5, 3.5) y (8, 2)
+        \draw[dashed, MyBlue, thick, domain=0:10.3, samples=100] 
+            plot (\x, {-1/7*\x*\x + 19/14*\x + 2/7});
+            
+        % 3. Curva "deforme" f(x) (morada, continua)
+        \draw[thick, MyRed, smooth, tension=0.7] 
+            plot coordinates {(0.2, 0) (1, 1.5) (3, 3.6) (5, 3.5) (8, 2) (10.5, -0.8)};
+            
+        % 4. Definición de coordenadas clave
+        \coordinate (P0) at (1, 1.5);
+        \coordinate (P1) at (5, 3.5);
+        \coordinate (P2) at (8, 2);
+        \coordinate (P3) at (9.706, 0); % Raíz de la parábola
+        
+        % 5. Líneas punteadas verticales
+        \draw[dashed, gray] (P0) -- (1,0);
+        \draw[dashed, gray] (P1) -- (5,0);
+        \draw[dashed, gray] (P2) -- (8,0);
+        
+        % 6. Dibujo de los puntos fijos y etiquetas superiores
+        %\filldraw (P0) circle (1.5pt) node[above left, font=\footnotesize] {$(p_0, f(p_0))$};
+        \filldraw[fill=white, draw=MyRed, thick] (P0) circle (2pt) 
+        node[right, xshift=6pt, yshift=3pt, font=\footnotesize] {$(p_0, f(p_0))$};
+        \filldraw[fill=white, draw=MyRed, thick] (P1) circle (2pt) 
+        node[above right, xshift=4pt, yshift=2pt, font=\footnotesize] {$(p_1, f(p_1))$};
+        \filldraw[fill=white, draw=MyRed, thick] (P2) circle (2pt) node[above right, font=\footnotesize] {$(p_2, f(p_2))$};
+        
+        % Punto p3 (donde cruza la naranja)
+        \filldraw[orange] (P3) circle (1.5pt);
+        
+        % 7. Etiquetas debajo del eje X
+        \node[below, align=center, font=\scriptsize] at (1,-0.05) {$p_0$ \\ $t = h_0$};
+        \node[below, align=center, font=\scriptsize] at (5,-0.05) {$p_1$ \\ $t = h_1$};
+        \node[below, align=center, font=\scriptsize] at (8,-0.05) {$p_2$ \\ $t = 0$};
+        \node[below, align=center, font=\scriptsize] at (9.706,-0.05) {$p_3$ \\ $t = z$};
+        
+        % 8. Flechas de acotación h_0 y h_1
+        \draw[<->, gray] (1, 0.6) -- (8, 0.6) node[midway, fill=white, font=\scriptsize] {$h_0$};
+        \draw[<->, gray] (5, 1.2) -- (8, 1.2) node[midway, fill=white, font=\scriptsize] {$h_1$};
+        
+        % 9. Etiqueta y flecha indicando y = f(x)
+        \node[font=\footnotesize] at (1.5, 4.3) {$y=f(x)$};
+        \draw[->, >=stealth] (1.5, 4.1) -- (2.0, 3.0);
+        
+    \end{tikzpicture}
+    \end{center}
+\end{frame}
+
+% --- SLIDE 7: CAMBIO DE VARIABLE ---
+\begin{frame}{Deducción: El Cambio de Variable}
+    \begin{concept}{Traslación de Coordenadas}
+        Movemos el eje vertical hacia el punto $p_2$ para simplificar el cálculo de los coeficientes. Ahora trataremos a $p_2$ como si fuera nuestro <<cero temporal>>.
+    \end{concept}
+
+    \vspace{0.1cm}
+    \begin{mathstep}{El cambio de variable}
+    Definimos la nueva variable $\displaystyle t = x - p_2$. Bajo este esquema:
+    \begin{itemize}
+        \item El punto $p_2$ se encuentra en $t = 0$.
+        \item El punto $p_1$ se encuentra a una distancia $h_1 = p_1 - p_2$.
+        \item El punto $p_0$ se encuentra a una distancia $h_0 = p_0 - p_2$.
+    \end{itemize}
+    \end{mathstep}
+\end{frame}
+
+% --- SLIDE 8: RESOLUCIÓN C ---
+\begin{frame}{Deducción: Hallando el Coeficiente c}
+    \vspace{-0.1cm}
+    \begin{mathstep}{Evaluación Analítica}
+        Ahora tenemos ($P(h) = ah^2 + bh + c$). Si evaluamos esta ecuación en el punto $p_2$ (donde $t = 0$), los coeficientes $a$ y $b$ se anulan:
+        \[ f(p_2) = a(0)^2 + b(0) + c \]
+    \end{mathstep}
+
+    \vspace{-0.2cm}
+    \begin{concept}{Identidad Obtenida}
+        \[ c = f(p_2) \]
+        Ya tenemos un tercio de nuestro modelo parabólico resuelto. Tenemos que:
+        \[ P(h) = ah^2 + bh + f(p_2) \]
+    \end{concept}
+\end{frame}
+
+% --- SLIDE 9: SISTEMA A Y B ---
+\begin{frame}{Deducción: El Sistema de Ecuaciones}
+    \begin{mathstep}{Planteando el Sistema de Ecuaciones}
+         Ahora necesitamos que la parábola pase por los puntos $p_0$ y $p_1$, donde $h_0 = p_0 - p_2$ y $h_1 = p_1 - p_2$. Sustituyendo para ambos casos en nuestra ecuación:
+        \[ \begin{cases} f(p_0) = a h_0^2 + b h_0 + c \\ f(p_1) = a h_1^2 + b h_1 + c \end{cases} \implies \begin{cases} f(p_0) = a h_0^2 + b h_0 + f(p_2) \\ f(p_1) = a h_1^2 + b h_1 + f(p_2) \end{cases}\]
+        \[
+        \begin{cases} a h_0^2 + b h_0 = f(p_0) - f(p_2) \\ a h_1^2 + b h_1 = f(p_1) - f(p_2) \end{cases} \text{Y, ahora llamaremos} \begin{cases} e_0 = f(p_0) - f(p_2) \\ e_1 = f(p_1) - f(p_2) \end{cases}
+        \]
+        \[
+        \begin{cases} a h_0^2 + b h_0 = e_0 \\ a h_1^2 + b h_1 = e_1 \end{cases}
+        \]
+    \end{mathstep}
+\end{frame}
+
+\begin{frame}{Deducción: El Sistema de Ecuaciones}
+    \vspace{-0.2cm}
+    \begin{concept}{Técnica de Resolución: Eliminación}
+        Con el objetivo de despejar los coeficientes $a$ y $b$, dividimos ambas ecuaciones entre sus respectivas distancias $h_i$:
+        \[
+        \begin{cases} 
+        (a h_0^2 + b h_0)\frac{1}{h_0} = e_0 \frac{1}{h_0} \\ 
+        (a h_1^2 + b h_1) \frac{1}{h_1} = e_1 \frac{1}{h_1}
+        \end{cases} 
+        \implies
+        \begin{cases} 
+        a h_0 + b = \frac{e_0}{h_0} \\ 
+        a h_1 + b = \frac{e_1}{h_1}
+        \end{cases}
+        \implies
+        \left\{
+        \begin{aligned} 
+            a h_0 + b &= \frac{e_0}{h_0} \\ 
+            -(a h_1 + b) &= - \frac{e_1}{h_1}
+        \end{aligned}
+        \right.
+        \]
+        \[
+        a h_0 + \cancel{b} - a h_1 - \cancel{b} = \frac{e_0}{h_0} - \frac{e_1}{h_1} \implies a (h_0 - h_1) = \frac{e_0}{h_0} \cdot \frac{h_1}{h_1} - \frac{e_1}{h_1} \cdot \frac{h_0}{h_0}
+        \]
+        \[
+        a (h_0 - h_1) = \frac{e_0h_1 - e_1h_0}{h_0h_1} \implies a = \frac{e_0h_1 - e_1h_0}{(h_0h_1)(h_0 - h_1)} \implies \boxed{a = \frac{e_0h_1 - e_1h_0}{h_1h_0^2 - h_0h_1^2}}
+        \]
+    \end{concept}
+\end{frame}
+
+\begin{frame}{Deducción: El Sistema de Ecuaciones}
+    \begin{mathstep}{Técnica de Resolución: Eliminación}
+        \[
+        \text{Reemplazando } a = \frac{e_0h_1 - e_1h_0}{h_1h_0^2 - h_0h_1^2} \text{ en }
+        ah_0 + b = \frac{e_0}{h_0} \text{ para obtener } b = \frac{e_0}{h_0} - ah_0:        \]
+        \[
+         b = \frac{e_0}{h_0} - \frac{e_0h_1 - e_1h_0}{h_1h_0^2 - h_0h_1^2}\cdot h_0 \implies b = \frac{e_0}{h_0} \cdot \frac{h_1h_0^2 - h_0h_1^2}{h_1h_0^2 - h_0h_1^2} - \frac{e_0h_1 - e_1h_0}{h_1h_0^2 - h_0h_1^2} \cdot \frac{h_0^2}{h_0}
+        \]
+        \[
+        b = \frac{e_0(h_1h_0^2 - h_0h_1^2) - h_0^2(e_0h_1 - e_1h_0)}{h_0(h_1h_0^2 - h_0h_1^2)}
+        \]
+        \[
+        b = \frac{\cancel{e_0h_1h_0^2} - e_0h_0h_1^2 - \cancel{e_0h_1h_0^2} + e_1h_0h_0^2}{h_0(h_1h_0^2 - h_0h_1^2)} \implies b = \frac{ - e_0h_0h_1^2 + e_1h_0h_0^2}{h_0(h_1h_0^2 - h_0h_1^2)}
+        \]
+    \end{mathstep}
+\end{frame}
+
+\begin{frame}{Deducción: Coeficientes finales}
+    \begin{concept}{Técnica de Resolución: Eliminación}
+        \[
+        b = \frac{ e_1h_0h_0^2 - e_0h_0h_1^2  }{h_0(h_1h_0^2 - h_0h_1^2)} \implies b = \frac{ \cancel{h_0} (e_1h_0^2 - e_0h_1^2)}{\cancel{h_0}(h_1h_0^2 - h_0h_1^2)} \implies \boxed{b = \frac{e_1h_0^2 - e_0h_1^2}{h_1h_0^2 - h_0h_1^2}}
+        \]
+    \end{concept}
+    \vspace{-0.2cm}
+    
+    \begin{mathstep}{Fórmulas Operativas}
+        \[ a = \frac{e_0 h_1 - e_1 h_0}{h_1 h_0^2 - h_0 h_1^2} \quad \text{y} \quad b = \frac{e_1 h_0^2 - e_0 h_1^2}{h_1 h_0^2 - h_0 h_1^2} \]
+        Ya tenemos los coeficientes de $P(h) = ah^2 + bh + c$. Estos valores de $a$ (curvatura) y $b$ (pendiente) completan nuestra \textbf{parábola de aproximación local}.
+    \end{mathstep}
+\end{frame}
+
+% --- SLIDE 11: RAÍZ ALTERNATIVA ---
+\begin{frame}{Deducción: El Salto a $p_3$ (la siguiente iteración)}
+    \vspace{-0.4cm}
+    \begin{columns}[T] % [T] para que ambos bloques empiecen alineados desde arriba
+        
+        % Columna Izquierda
+        \begin{column}{0.45\textwidth}
+            \begin{concept}{Siguientes pasos}
+                Como la parábola se \textbf{parece} tanto a nuestra función original, asumimos que su raíz estará \textit{muy cerca} de la real. 
+                \vspace{0.5em}
+                
+                Hallamos cuando la parábola de aproximación se hace $0$:
+                \[
+                ah^2 + bh + c = 0
+                \]
+                Para hallar los ceros de la parábola usamos:
+            \end{concept}
+        \end{column}
+
+        % Columna Derecha
+        \begin{column}{0.55\textwidth}
+            \begin{mathstep}{Fórmula de Müller}
+                Para prevenir errores de redondeo por cancelación numérica, usamos la expresión alternativa:
+                \[ h = \frac{-2c}{b \pm \sqrt{b^2 - 4ac}} \]
+                \small
+                \textbf{Criterio de selección:}
+                De las 2 posibles soluciones siempre elegimos el valor de $h$ que sea más pequeño en magnitud (más cercano a cero). Buscamos el cruce que esté más <<cerquita>> de nuestro punto actual $p_2$. Obteniendo así $p_3 = p_2 + h$.
+            \end{mathstep}
+        \end{column}
+        
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Deducción: Actualización de puntos}
+    \vspace{-0.2cm}
+    \begin{concept}{Algoritmo de Relevos (Iteración $k \to k+1$)}
+    En cada nueva iteración, los puntos se desplazan de la siguiente manera:
+        
+        \vspace{0.1cm}
+        \begin{center}
+        \renewcommand{\arraystretch}{1.3} 
+        \begin{tabular}{lll}
+            \toprule
+            \textbf{Rol en el Método} & \textbf{Iteración Actual} & \textbf{Próxima Iteración} \\
+            \midrule
+            Punto Antiguo & $p_0$ & $\leftarrow$ \textit{Se descarta (muere)} \\
+            Punto Medio   & $p_1$ & $\rightarrow$ Se convierte en el nuevo $p_0$ \\
+            Punto Reciente& $p_2$ & $\rightarrow$ Se convierte en el nuevo $p_1$ \\
+            \textbf{Punto Nuevo}  & $p_3$ (calculado con $h$) & $\rightarrow$ Se convierte en el nuevo $p_2$ \\
+            \bottomrule
+        \end{tabular}
+        \end{center}
+        \small
+        \textbf{Nota:} De esta manera, la parábola se vuelve a construir en el siguiente ciclo utilizando el conjunto actualizado $\{p_0, p_1, p_2\}$, acercándose cada vez más en torno a la raíz real.
+    \end{concept}
+\end{frame}
+
+\begin{frame}{Y continuamos en las siguientes iteraciones}
+    \vspace{-0.7cm}
+    \begin{center}
+    \begin{tikzpicture}[scale=1.13]
+        
+        % 1. Ejes
+        \draw[->] (-1,0) -- (11,0) node[right] {$x$ (OX)};
+        \draw[->] (0,-1) -- (0,5.2) node[above] {$f(x)$};
+        
+        % 2. Parábola perfecta (naranja, punteada)
+        % Calculada para pasar por (1, 1.5), (5, 3.5) y (8, 2)
+        \draw[dashed, MyBlue, thick, domain=0:10.3, samples=100] 
+            plot (\x, {-1/7*\x*\x + 19/14*\x + 2/7});
+            
+        % 3. Curva "deforme" f(x) (morada, continua)
+        \draw[thick, MyRed, smooth, tension=0.7] 
+            plot coordinates {(0.2, 0) (1, 1.5) (3, 3.6) (5, 3.5) (8, 2) (10.5, -0.8)};
+            
+        % 4. Definición de coordenadas clave
+        \coordinate (P0) at (1, 1.5);
+        \coordinate (P1) at (5, 3.5);
+        \coordinate (P2) at (8, 2);
+        \coordinate (P3) at (9.706, 0); % Raíz de la parábola
+        
+        % 5. Líneas punteadas verticales
+        \draw[dashed, gray] (P0) -- (1,0);
+        \draw[dashed, gray] (P1) -- (5,0);
+        \draw[dashed, gray] (P2) -- (8,0);
+        
+        % 6. Dibujo de los puntos fijos y etiquetas superiores
+        %\filldraw (P0) circle (1.5pt) node[above left, font=\footnotesize] {$(p_0, f(p_0))$};
+        \filldraw[fill=white, draw=MyRed, thick] (P0) circle (2pt) 
+        node[right, xshift=6pt, yshift=3pt, font=\footnotesize] {$(p_0, f(p_0))$};
+        \filldraw[fill=white, draw=MyRed, thick] (P1) circle (2pt) 
+        node[above right, xshift=4pt, yshift=2pt, font=\footnotesize] {$(p_1, f(p_1))$};
+        \filldraw[fill=white, draw=MyRed, thick] (P2) circle (2pt) node[above right, font=\footnotesize] {$(p_2, f(p_2))$};
+        
+        % Punto p3 (donde cruza la naranja)
+        \filldraw[orange] (P3) circle (1.5pt);
+        
+        % 7. Etiquetas debajo del eje X
+        \node[below, align=center, font=\scriptsize] at (1,-0.05) {$p_0$ \\ $t = h_0$};
+        \node[below, align=center, font=\scriptsize] at (5,-0.05) {$p_1$ \\ $t = h_1$};
+        \node[below, align=center, font=\scriptsize] at (8,-0.05) {$p_2$ \\ $t = 0$};
+        \node[below, align=center, font=\scriptsize] at (9.706,-0.05) {$p_3$ \\ $t = z$};
+        
+        % 8. Flechas de acotación h_0 y h_1
+        \draw[<->, gray] (1, 0.6) -- (8, 0.6) node[midway, fill=white, font=\scriptsize] {$h_0$};
+        \draw[<->, gray] (5, 1.2) -- (8, 1.2) node[midway, fill=white, font=\scriptsize] {$h_1$};
+        
+        % 9. Etiqueta y flecha indicando y = f(x)
+        \node[font=\footnotesize] at (1.5, 4.3) {$y=f(x)$};
+        \draw[->, >=stealth] (1.5, 4.1) -- (2.0, 3.0);
+        
+    \end{tikzpicture}
+    \end{center}
+\end{frame}
+
+% --- SLIDE 12: DESEMPEÑO ---
+\begin{frame}{Análisis de Desempeño Comparativo}
+    \vspace{-0.2cm}
+    \begin{columns}[T]
+        
+        % COLUMNA 1: MEJOR FUNCIONAMIENTO
+        \begin{column}{0.32\textwidth}
+            \begin{performancebox}{MEJOR FUNCIONAMIENTO}{Emerald}
+                \textbf{Escenario ideal:} Raíces simples y curvas suaves. \\ \vspace{0.1cm}
+                
+                \textbf{¿Por qué?} La parábola se acopla perfectamente a la función, logrando una convergencia superlineal rápida. \\ \vspace{0.1cm}
+                
+                \textbf{Ejemplo:} \\
+                $f(x) = e^{-x} - \sin(x)$ \\
+                Cerca de su raíz ($\approx 0.588$), curva suave, 3 o 4 iteraciones.
+            \end{performancebox}
+        \end{column}
+        
+        % COLUMNA 2: COMPORTAMIENTO POBRE
+        \begin{column}{0.32\textwidth}
+            \begin{performancebox}{COMPORTAMIENTO POBRE}{SunFlower}
+                \textbf{Escenario malo:} Raíces múltiples ($m > 1$) o zonas planas. \\ \vspace{0.1cm}
+                
+                \textbf{¿Por qué?} La función se aplana en el eje $x$. La parábola se <<confunde>> y la velocidad cae a orden lineal. \\ \vspace{0.1cm}
+                
+                \textbf{Ejemplo:} \\
+                $f(x) = 1 - \cos(x)$ \\
+                Tiene una raíz doble en $x = 0$. Al ser tan <<plana>> en la base, el método tarda en converger.
+            \end{performancebox}
+        \end{column}
+        
+        % COLUMNA 3: FALLO CRÍTICO
+        \begin{column}{0.32\textwidth}
+            \begin{performancebox}{FALLO CRÍTICO}{Alizarin}
+                \textbf{Escenario de quiebre:} Puntos equiespaciados o colineales. \\ \vspace{0.1cm}
+                
+                \textbf{¿Por qué?} Si la distancia entre los puntos es la misma, el denominador común se vuelve cero y el código se rompe. \\ \vspace{0.1cm}
+                
+                \textbf{Mal uso:} \\
+                $f(x) = x^3 - x - 1$ \\
+                Si comenzamos $x_0=1, x_1=2, x_2=3$, la distancia es idéntica ($h_0=h_1=1$) $\implies \div 0$.
+            \end{performancebox}
+        \end{column}
+        
+    \end{columns}
+\end{frame}
+
+\begin{frame}[fragile, allowframebreaks]{Anexo: Implementación del Algoritmo}
+\begin{lstlisting}[style=mullerpython]
+import cmath
+import math
+from typing import Callable, Union, List, Optional
+
+# Definición de tipo para valores que pueden ser reales o complejos
+ComplexNumber = Union[float, complex]
+
+def muller(
+    f: Callable[[ComplexNumber], ComplexNumber],
+    p0: ComplexNumber,
+    p1: ComplexNumber,
+    p2: ComplexNumber,
+    tol: float = 1e-10,
+    max_iter: int = 100
+) -> ComplexNumber:
+    """
+    Encuentra una raíz de la función f utilizando el método de Muller. Un algoritmo
+    iterativo que utiliza interpolación cuadrática a través de tres puntos para aproximar
+    una raíz.
+
+    Args:
+        f: La función objetivo para la cual se busca la raíz.
+        p0: Primera aproximación inicial.
+        p1: Segunda aproximación inicial.
+        p2: Tercera aproximación inicial (típicamente la más cercana a la raíz).
+        tol: Tolerancia para el criterio de convergencia (abs(p_n - p_{n-1}) < tol).
+        max_iter: Límite máximo de iteraciones para evitar bucles infinitos.
+
+    Returns:
+        ComplexNumber: La raíz aproximada encontrada.
+        
+    Raises:
+        ZeroDivisionError: Si el denominador en la fórmula cuadrática se vuelve cero
+                           y no se puede determinar el siguiente punto.
+    """
+    iteration: int = 0
+    
+    while iteration < max_iter:
+        h0: ComplexNumber = p0 - p2
+        h1: ComplexNumber = p1 - p2
+        
+        f0: ComplexNumber = f(p0)
+        f1: ComplexNumber = f(p1)
+        f2: ComplexNumber = f(p2)
+        
+        e0: ComplexNumber = f0 - f2
+        e1: ComplexNumber = f1 - f2
+        
+        # Denominador del sistema para a y b
+        det: ComplexNumber = h0 * h1 * (h0 - h1)
+        if det == 0:
+            # Si los puntos coinciden, no se puede formar la parábola.
+            return p2
+            
+        a: ComplexNumber = (e0 * h1 - e1 * h0) / det
+        b: ComplexNumber = (e1 * h0**2 - e0 * h1**2) / det
+        c: ComplexNumber = f2
+        
+        # Discriminante de la ecuación cuadrática: at^2 + bt + c = 0
+        discriminant: ComplexNumber = cmath.sqrt(b**2 - 4 * a * c)
+        
+        # Estabilidad numérica: elegir el signo que maximice la magnitud del denominador
+        plus_den = b + discriminant
+        minus_den = b - discriminant
+        
+        denominator = plus_den if abs(plus_den) > abs(minus_den) else minus_den
+            
+        if abs(denominator) < 1e-20:
+            # Si el denominador es extremadamente pequeño, tomamos un paso nulo o salimos
+            z: ComplexNumber = 0
+        else:
+            # Fórmula cuadrática alternativa para mayor precisión numérica
+            z = -2 * c / denominator
+            
+        p3: ComplexNumber = p2 + z
+        
+        # Verificar convergencia
+        if abs(z) < tol:
+            return p3
+            
+        # Actualización de puntos: estrategia de los puntos más cercanos a p3
+        # Esto mejora la convergencia local y el manejo de clusters de raíces.
+        points: List[ComplexNumber] = [p0, p1, p2]
+        points.sort(key=lambda p: abs(p - p3))
+        
+        p0, p1 = points[0], points[1]
+        p2 = p3
+        
+        iteration += 1
+        
+    return p2
+\end{lstlisting}
+\end{frame}
+
+% --- SLIDE 13: CONCLUSIÓN ---
+\begin{frame}{Conclusión}
+    \begin{concept}{Síntesis del Trabajo}
+        Müller combina la facilidad de los métodos abiertos con la potencia de los modelos de segundo grado. Permitiendo explorar el plano complejo de forma natural y sin depender de derivadas analíticas.
+    \end{concept}
+
+    \vspace{0.2cm}
+    \begin{mathstep}{Comentario}
+        A través de su deducción, hemos visto cómo el desplazamiento del origen y la fórmula cuadrática alternativa garantizan una estabilidad numérica que lo hace ideal para aplicaciones de ingeniería y ciencias exactas donde la robustez es tan importante como la velocidad.
+    \end{mathstep}
+\end{frame}
+
+% --- SLIDE 14: PREGUNTAS ---
+\begin{frame}[plain]
+    \begin{center}
+        \vfill
+        \Huge \textbf{\textcolor{MyRed}{¿Preguntas?}}
+    \end{center}
+\end{frame}
+
+% --- SLIDE 15: FUENTES ---
+\begin{frame}{Fuentes}
+    \begin{concept}{Bibliografía Principal}
+        \begin{itemize}
+            \item Mathews, J. H., \& Fink, K. D. (2000). \textit{Métodos Numéricos con MATLAB}. Prentice Hall.
+        \end{itemize}
+    \end{concept}
+    \vspace{0.5cm}
+    \begin{mathstep}{Referencia Adicional}
+        Burden, R. L., \& Faires, J. D. (2011). \textit{Análisis Numérico}. Cengage Learning.
+    \end{mathstep}
+\end{frame}
+
+\end{document}

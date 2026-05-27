@@ -46,7 +46,10 @@ print(f"La raíz es: {raiz}")
 - **Soporte Complejo:** Encuentra raíces imaginarias de forma nativa.
 - **Estabilidad Numérica:** Implementa la fórmula cuadrática alternativa para evitar errores de redondeo.
 - **Versatilidad:** Probado con funciones polinomiales, trascendentes y racionales.
-- **Manejo de Clusters:** Lógica de actualización de puntos optimizada para raíces cercanas.
+- **Interfaz "Pro":** Nueva GUI con diseño moderno, paleta de colores profesional y visualización iterativa fluida.
+- **Visualización Estilizada:** Gráficas de alta calidad con estilos modernos (Matplotlib Seaborn).
+- **Código Tipado:** Implementación robusta con anotaciones de tipo (`typing`) y documentación exhaustiva.
+- **Suite de Ejemplos:** Archivo dedicado `ejemplos_muller.py` para verificar diversos casos de uso.
 
 ## Referencias
 

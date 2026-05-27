@@ -1,4 +1,4 @@
-# El Método de Muller: Una Aproximación Geométrica y Numérica
+# El Método de Müller: Una Aproximación Geométrica y Numérica
 
 **Autores:** [Tus Datos Aquí]  
 **Institución:** [Nombre de la Institución]  
@@ -6,12 +6,12 @@
 **Fecha:** 26 de mayo de 2026
 
 ## 1. Introducción
-La búsqueda de raíces de ecuaciones no lineales es un pilar fundamental en el análisis numérico. Mientras que el método de la secante utiliza una interpolación lineal entre dos puntos, el método de Muller extiende esta idea utilizando una interpolación cuadrática a través de tres puntos. Esta característica no solo permite una convergencia más rápida (casi cuadrática), sino que también faculta al método para encontrar raíces complejas, una limitación común en métodos basados exclusivamente en aritmética real.
+La búsqueda de raíces de ecuaciones no lineales es un pilar fundamental en el análisis numérico. Mientras que el método de la secante utiliza una interpolación lineal entre dos puntos, el método de Müller extiende esta idea utilizando una interpolación cuadrática a través de tres puntos. Esta característica no solo permite una convergencia más rápida (casi cuadrática), sino que también faculta al método para encontrar raíces complejas, una limitación común en métodos basados exclusivamente en aritmética real.
 
 ## 2. Desarrollo Teórico y Motivación Geométrica
 
 ### 2.1 Intuición Geométrica
-A diferencia de la secante que traza una línea, Muller propone ajustar una parábola $y = ax^2 + bx + c$ que pase por tres puntos iniciales: $(p_0, f(p_0))$, $(p_1, f(p_1))$ y $(p_2, f(p_2))$. La raíz de esta parábola que se encuentra más cerca del último punto ($p_2$) se toma como la siguiente aproximación $p_3$.
+A diferencia de la secante que traza una línea, Müller propone ajustar una parábola $y = ax^2 + bx + c$ que pase por tres puntos iniciales: $(p_0, f(p_0))$, $(p_1, f(p_1))$ y $(p_2, f(p_2))$. La raíz de esta parábola que se encuentra más cerca del último punto ($p_2$) se toma como la siguiente aproximación $p_3$.
 
 La motivación detrás de usar una parábola es capturar la curvatura local de la función, lo cual explica por qué el método es tan eficiente incluso cerca de puntos de inflexión o mínimos locales donde otros métodos podrían fallar o ralentizarse.
 
@@ -44,12 +44,12 @@ La implementación en Python utiliza el módulo `cmath` para manejar de forma na
 
 ## 5. Análisis de Desempeño y Casos de Estudio
 
-Para comprender la eficiencia del método de Muller, es útil clasificar las funciones según su comportamiento iterativo. El orden de convergencia teórico es de aproximadamente $1.84$, lo que significa que es casi cuadrático (más rápido que la secante, $1.618$, pero un poco más lento que Newton, $2.0$).
+Para comprender la eficiencia del método de Müller, es útil clasificar las funciones según su comportamiento iterativo. El orden de convergencia teórico es de aproximadamente $1.84$, lo que significa que es casi cuadrático (más rápido que la secante, $1.618$, pero un poco más lento que Newton, $2.0$).
 
 ### 5.1 Caso Ideal (El "Best Case")
 **Funciones:** Parabólicas o suavemente monótonas cerca de la raíz.  
 **Ejemplo:** $f(x) = x^2 - 4$ o $f(x) = e^x - 2$.  
-**Razón:** Dado que Muller utiliza una parábola para aproximar la función, si la función original ya es una parábola o se parece mucho a una en el intervalo elegido, la aproximación es casi perfecta desde la primera iteración. La convergencia es extremadamente rápida (2-4 iteraciones).
+**Razón:** Dado que Müller utiliza una parábola para aproximar la función, si la función original ya es una parábola o se parece mucho a una en el intervalo elegido, la aproximación es casi perfecta desde la primera iteración. La convergencia es extremadamente rápida (2-4 iteraciones).
 
 ### 5.2 Caso Promedio (Comportamiento Estándar)
 **Funciones:** Polinomios de grado mayor a 2 o funciones trascendentes con raíces bien separadas.  
@@ -60,18 +60,18 @@ Para comprender la eficiencia del método de Muller, es útil clasificar las fun
 **Funciones:** Raíces de alta multiplicidad o funciones con cambios bruscos de pendiente.  
 **Ejemplo:** $f(x) = (x - 1)^5$ o $f(x) = \frac{1}{x-1}$ (cerca de la asíntota).  
 **Razón:** 
-1. **Multiplicidad:** Cuando una raíz se repite (ej. $(x-1)^5$), la derivada $f'(x)$ y la curvatura $f''(x)$ tienden a cero en la raíz. Esto hace que la parábola de Muller se vuelva muy "plana", causando que el método pierda su velocidad super-lineal y se vuelva **lineal** (muy lento).
+1. **Multiplicidad:** Cuando una raíz se repite (ej. $(x-1)^5$), la derivada $f'(x)$ y la curvatura $f''(x)$ tienden a cero en la raíz. Esto hace que la parábola de Müller se vuelva muy "plana", causando que el método pierda su velocidad super-lineal y se vuelva **lineal** (muy lento).
 2. **Puntos de Inflexión:** Si los puntos iniciales rodean un punto de inflexión muy pronunciado, la parábola puede "saltar" a una región muy lejana del dominio, pudiendo incluso divergir si no hay una lógica de control.
 
 ## 6. Resultados y Pruebas
 Se probaron diversas naturalezas de funciones:
 1.  **Polinomial:** $x^3 - x - 1 = 0$ $\rightarrow$ Raíz: $1.3247$
 2.  **Trascendente:** $e^{-x} - x = 0$ $\rightarrow$ Raíz: $0.5671$
-3.  **Trigonométrica:** $\sin(x) - x/2 = 0$ $\rightarrow$ Raíz: $1.8954$
+3.  **Trigonométrica:** $\sen(x) - x/2 = 0$ $\rightarrow$ Raíz: $1.8954$
 4.  **Compleja:** $x^2 + 1 = 0$ $\rightarrow$ Raíz: $0 + 1j$
 
 ## 6. Conclusión
-El método de Muller es una herramienta poderosa y versátil. Su capacidad para manejar funciones no polinomiales y encontrar raíces complejas lo sitúa por encima de métodos más simples como la secante. Sin embargo, su éxito depende de una implementación cuidadosa de la estabilidad numérica y una elección informada de los valores iniciales.
+El método de Müller es una herramienta poderosa y versátil. Su capacidad para manejar funciones no polinomiales y encontrar raíces complejas lo sitúa por encima de métodos más simples como la secante. Sin embargo, su éxito depende de una implementación cuidadosa de la estabilidad numérica y una elección informada de los valores iniciales.
 
 ## Bibliografía
 - Mathews, J. H., & Fink, K. D. (2000). *Métodos Numéricos con MATLAB*. Prentice Hall.
