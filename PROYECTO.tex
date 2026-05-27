@@ -10,6 +10,7 @@
 \usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{array}
+\usepackage[margin=2.5cm]{geometry}
 
 \DeclareMathOperator{\sen}{sen}
 
@@ -86,7 +87,7 @@ Se elige el signo que maximice la magnitud del denominador. La nueva aproximaci�
 
 \subsection{Comparativa de Métodos}
 \begin{table}[h]
-\centering
+\begin{center}
 \begin{tabular}{lcccc}
 \toprule
 \textbf{Método} & \textbf{Orden Conv.} & \textbf{Pts Iniciales} & \textbf{Raíces Complejas} & \textbf{Req. Derivada} \\
@@ -98,6 +99,7 @@ Newton-Raphson & 2.0 & 1 & No* & Sí \\
 \bottomrule
 \end{tabular}
 \caption{Comparación de características de métodos de búsqueda de raíces.}
+\end{center}
 \end{table}
 
 \section{Ejemplos y Problemas Resueltos}
