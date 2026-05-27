@@ -155,6 +155,7 @@ if __name__ == "__main__":
         safe_dict = {
             'x': 0,
             'sin': cmath.sin,
+            'sen': cmath.sin,
             'cos': cmath.cos,
             'exp': cmath.exp,
             'log': cmath.log,
